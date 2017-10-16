@@ -1,14 +1,17 @@
 
 #include "task.h"
 
-bool pedal = false;
+#define ADC_OFFSET	2048
+#define ADC_LEN	1024
 
-static bool Pedal_pre = 1;
-bool IsPedalToggle(bool data)
+
+
+static bool Pedal_pre = 0;
+inline bool IsPedalToggle(void)
 {
-	if(Pedal_pre != Pedal)
+	if(Pedal_pre != Pedal_GetVal())
 	{
-		Pedal_pre = Pedal;
+		Pedal_pre = Pedal_GetVal();
 		return true;
 	}else
 	{
@@ -19,9 +22,11 @@ bool IsPedalToggle(bool data)
 void run(void)
 {
 	float steel;
+	int adc_result
 	while(1)
 	{
-		if(IsPedalToggle(pedal))
+		Time_Delay(10);
+		if(IsPedalToggle())
 		{
 			if(pedal == true)
 			{
@@ -32,7 +37,21 @@ void run(void)
 			}
 			continue;
 		}
-		steel = ADC_get();
+		adc_result = ADC_get();
+		//MY_DEBUGF(((uint8_t*)&"adc result is %d\r\n"))
+		
+		if(adc_result > ADC_OFFSET + ADC_LEN)
+		{
+			steel = 1;
+		}else if(adc_result < ADC_OFFSET - ADC_LEN)
+		{
+			steel = -1;
+		}else
+		{
+			steel = (float)(adc_result - ADC_OFFSET)/ADC_LEN;
+		}
+
+		steel = (adc_result - ADC_OFFSET)
 		if(steel == 1 || steel == -1)
 		{
 			MY_DEBUGF(((uint8_t*)&"%d", steel));
